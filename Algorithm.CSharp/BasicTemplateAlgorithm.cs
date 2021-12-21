@@ -39,16 +39,25 @@ namespace QuantConnect.Algorithm.CSharp
         {
             //SetStartDate(2013, 10, 07);  //Set Start Date
             //SetEndDate(2013, 10, 11);    //Set End Date
+<<<<<<< HEAD
             SetStartDate(1998, 1, 1);  //Set Start Date
             SetEndDate(1998, 1, 10);  //Set Start Date
+=======
+            SetStartDate(2000, 1, 1);  //Set Start Date
+>>>>>>> 5c9a3850c (WIP)
             SetCash(100000);             //Set Strategy Cash
 
             // Find more symbols here: http://quantconnect.com/data
             // Forex, CFD, Equities Resolutions: Tick, Second, Minute, Hour, Daily.
             // Futures Resolution: Tick, Second, Minute
             // Options Resolution: Minute Only.
+<<<<<<< HEAD
             AddEquity("SPY2", Resolution.Daily);
             //AddCfd("XAUUSD", Resolution.Daily, Market.Oanda);
+=======
+            //AddEquity("SPY", Resolution.Minute);
+            AddCfd("XAUUSD", Resolution.Daily, Market.Oanda);
+>>>>>>> 5c9a3850c (WIP)
             //AddCfd("NAS100USD", Resolution.Daily, Market.Oanda);
 
             // There are other assets with similar methods. See "Selecting Options" etc for more details.
@@ -62,9 +71,13 @@ namespace QuantConnect.Algorithm.CSharp
         public override void OnData(Slice data)
         {
 
+<<<<<<< HEAD
             //Debug(Portfolio.Cash);
             Debug(Time.ToString());
             Debug(Securities["SPY2"].Close);
+=======
+            Debug(Portfolio.Cash);
+>>>>>>> 5c9a3850c (WIP)
             if (!Portfolio.Invested)
             {
                 //SetHoldings(_spy, 2);
