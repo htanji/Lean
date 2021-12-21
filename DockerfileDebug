@@ -1,0 +1,6 @@
+FROM quantconnect/lean:foundation
+
+RUN apt-get update && apt-get install -y \
+    byobu \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
