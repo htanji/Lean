@@ -11,6 +11,7 @@
   // algorithm class selector
   //"algorithm-type-name": "BasicTemplateAlgorithm",
   "algorithm-type-name": "CustomDataRegressionAlgorithm",
+  //"algorithm-type-name": "TiingoPriceAlgorithm",
 
   // Algorithm language selector - options CSharp, Python
   //"algorithm-language": "CSharp",
