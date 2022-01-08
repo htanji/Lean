@@ -28,7 +28,8 @@ namespace QuantConnect.Algorithm.CSharp
     /// <meta name="tag" content="tiingo" />
     public class TiingoPriceAlgorithm : QCAlgorithm
     {
-        private const string Ticker = "AAPL";
+        //private const string Ticker = "AAPL";
+        private const string Ticker = "VXX";
         private Symbol _symbol;
 
         private ExponentialMovingAverage _emaFast;
@@ -39,14 +40,18 @@ namespace QuantConnect.Algorithm.CSharp
         /// </summary>
         public override void Initialize()
         {
-            SetStartDate(2017, 1, 1);
-            SetEndDate(2017, 12, 31);
+            SetStartDate(2010, 1, 1);
+            SetEndDate(2011, 1, 1);
+            //SetStartDate(2020, 1, 1);
+            //SetEndDate(2021, 1, 1);
             SetCash(100000);
 
             // Set your Tiingo API Token here
-            Tiingo.SetAuthCode("my-tiingo-api-token");
+            //Tiingo.SetAuthCode("my-tiingo-api-token");
+            Tiingo.SetAuthCode("9a596f5bd73a1470ce69bccb8cd5268db2a72780");
 
-            _symbol = AddData<TiingoPrice>(Ticker, Resolution.Daily).Symbol;
+            var equity = AddEquity(Ticker, Resolution.Daily).Symbol;
+            _symbol = AddData<TiingoPrice>(equity, Resolution.Daily).Symbol;
 
             _emaFast = EMA(_symbol, 5);
             _emaSlow = EMA(_symbol, 10);
