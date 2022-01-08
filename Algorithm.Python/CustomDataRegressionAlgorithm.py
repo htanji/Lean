@@ -12,6 +12,8 @@
 # limitations under the License.
 
 from AlgorithmImports import *
+#import json
+#import datetime
 
 ### <summary>
 ### Regression test to demonstrate importing and trading on custom data.
@@ -22,82 +24,74 @@ from AlgorithmImports import *
 ### <meta name="tag" content="crypto" />
 ### <meta name="tag" content="regression test" />
 class CustomDataRegressionAlgorithm(QCAlgorithm):
+    klass = None
 
     def Initialize(self):
 
         self.SetStartDate(2011,9,13)   # Set Start Date
-        self.SetEndDate(2015,12,1)     # Set End Date
+        #self.SetEndDate(2015,12,1)     # Set End Date
+        self.SetEndDate(2012,9,14)     # Set End Date
         self.SetCash(100000)           # Set Strategy Cash
 
         resolution = Resolution.Second if self.LiveMode else Resolution.Daily
-        self.AddData(Bitcoin, "BTC", resolution)
+        #self.AddData(YahooFinance, "2621.T", resolution)
+        #self.AddData(YahooFinance, "NDX", resolution)
+        self.AddData(YahooFinance, "NDX")
+        CustomDataRegressionAlgorithm.klass = self
 
     def OnData(self, data):
+        self.Debug('onData' + data['NDX'])
         if not self.Portfolio.Invested:
-            if data['BTC'].Close != 0 :
-                self.Order('BTC', self.Portfolio.MarginRemaining/abs(data['BTC'].Close + 1))
+            if data['NDX'].Close != 0 :
+                self.Order('NDX', self.Portfolio.MarginRemaining / abs(data['NDX'].Close + 1))
 
 
-class Bitcoin(PythonData):
-    '''Custom Data Type: Bitcoin data from Quandl - http://www.quandl.com/help/api-for-bitcoin-data'''
+class YahooFinance(PythonData):
+    '''Custom Data Type: symbol from yahoo finance'''
 
     def GetSource(self, config, date, isLiveMode):
+        #CustomDataRegressionAlgorithm.klass.Debug('date: {}'.format(date))
+        #url = "https://query1.finance.yahoo.com/v8/finance/chart/NDX?period1=1638576000&period2=1640822400&interval=1d&events=div%2Csplits"
+        url = "https://query1.finance.yahoo.com/v8/finance/chart/{}?period1={}&period2={}&interval=1d&events=div%2Csplits".format(config.Symbol.Value, int(date.timestamp()), int((date + timedelta(days=1)).timestamp()))
+
         if isLiveMode:
-            return SubscriptionDataSource("https://www.bitstamp.net/api/ticker/", SubscriptionTransportMedium.Rest)
+            return SubscriptionDataSource(url, SubscriptionTransportMedium.Rest)
 
         #return "http://my-ftp-server.com/futures-data-" + date.ToString("Ymd") + ".zip"
         # OR simply return a fixed small data file. Large files will slow down your backtest
-        return SubscriptionDataSource("https://www.quantconnect.com/api/v2/proxy/quandl/api/v3/datasets/BCHARTS/BITSTAMPUSD.csv?order=asc&api_key=WyAazVXnq7ATy_fefTqm", SubscriptionTransportMedium.RemoteFile)
+        #return SubscriptionDataSource(url, SubscriptionTransportMedium.Rest)
+        return SubscriptionDataSource(url, SubscriptionTransportMedium.RemoteFile)
 
+    
 
     def Reader(self, config, line, date, isLiveMode):
-        coin = Bitcoin()
-        coin.Symbol = config.Symbol
-
-        if isLiveMode:
-            # Example Line Format:
-            # {"high": "441.00", "last": "421.86", "timestamp": "1411606877", "bid": "421.96", "vwap": "428.58", "volume": "14120.40683975", "low": "418.83", "ask": "421.99"}
-            try:
-                liveBTC = json.loads(line)
-
-                # If value is zero, return None
-                value = liveBTC["last"]
-                if value == 0: return None
-
-                coin.Time = datetime.now()
-                coin.Value = value
-                coin["Open"] = float(liveBTC["open"])
-                coin["High"] = float(liveBTC["high"])
-                coin["Low"] = float(liveBTC["low"])
-                coin["Close"] = float(liveBTC["last"])
-                coin["Ask"] = float(liveBTC["ask"])
-                coin["Bid"] = float(liveBTC["bid"])
-                coin["VolumeBTC"] = float(liveBTC["volume"])
-                coin["WeightedPrice"] = float(liveBTC["vwap"])
-                return coin
-            except ValueError:
-                # Do nothing, possible error in json decoding
-                return None
-
-        # Example Line Format:
-        # Date      Open   High    Low     Close   Volume (BTC)    Volume (Currency)   Weighted Price
-        # 2011-09-13 5.8    6.0     5.65    5.97    58.37138238,    346.0973893944      5.929230648356
-        if not (line.strip() and line[0].isdigit()): return None
+        yfin = YahooFinance()
+        yfin.Symbol = config.Symbol
 
         try:
-            data = line.split(',')
-            coin.Time = datetime.strptime(data[0], "%Y-%m-%d")
-            coin.EndTime = coin.Time + timedelta(days=1)
-            coin.Value = float(data[4])
-            coin["Open"] = float(data[1])
-            coin["High"] = float(data[2])
-            coin["Low"] = float(data[3])
-            coin["Close"] = float(data[4])
-            coin["VolumeBTC"] = float(data[5])
-            coin["VolumeUSD"] = float(data[6])
-            coin["WeightedPrice"] = float(data[7])
-            return coin
+            data = json.loads(line)
+            ohlc = data["chart"]["result"][0]["indicators"]["quote"][0]
+            if len(ohlc.keys()) == 0:
+                return None
 
+            yfin["Open"] = float(ohlc["open"][0])
+            yfin["High"] = float(ohlc["high"][0])
+            yfin["Low"] = float(ohlc["low"][0])
+            yfin["Close"] = float(ohlc["close"][0])
+            yfin["Volume"] = float(ohlc["volume"][0])
+
+            #yfin.Time = datetime.strptime(data[0], "%Y-%m-%d")
+            yfin.Time = date
+            yfin.EndTime = date + timedelta(days=1)
+            yfin.Value = yfin["Close"]
+
+            CustomDataRegressionAlgorithm.klass.Debug('date: {}'.format(date))
+            CustomDataRegressionAlgorithm.klass.Debug('Open: {}'.format(yfin["Open"]))
+            CustomDataRegressionAlgorithm.klass.Debug(yfin.Time)
+            CustomDataRegressionAlgorithm.klass.Debug(yfin.EndTime)
+            CustomDataRegressionAlgorithm.klass.Debug('{} {}'.format(type(yfin.Time), type(yfin.EndTime)))
+            return yfin
         except ValueError:
             # Do nothing, possible error in json decoding
             return None
+
