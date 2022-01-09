@@ -16,7 +16,7 @@
 using QuantConnect.Data;
 using QuantConnect.Data.Custom.Tiingo;
 using QuantConnect.Indicators;
-using QuantConnect.Data.Custom.YahooFinace;
+using QuantConnect.Data.Custom.YahooFinance;
 
 namespace QuantConnect.Algorithm.CSharp
 {

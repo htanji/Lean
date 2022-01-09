@@ -24,7 +24,7 @@ using static QuantConnect.StringExtensions;
 using QuantConnect.Data.Custom.Tiingo;
 using Newtonsoft.Json.Linq;
 
-namespace QuantConnect.Data.Custom.YahooFinace
+namespace QuantConnect.Data.Custom.YahooFinance
 {
     /// <summary>
     /// Tiingo daily price data
