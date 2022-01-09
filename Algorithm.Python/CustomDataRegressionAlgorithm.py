@@ -12,6 +12,9 @@
 # limitations under the License.
 
 from AlgorithmImports import *
+from QuantConnect.Data.Custom.Tiingo import *
+#import json
+#import datetime
 
 ### <summary>
 ### Regression test to demonstrate importing and trading on custom data.
@@ -21,83 +24,123 @@ from AlgorithmImports import *
 ### <meta name="tag" content="custom data" />
 ### <meta name="tag" content="crypto" />
 ### <meta name="tag" content="regression test" />
-class CustomDataRegressionAlgorithm(QCAlgorithm):
 
+
+class CustomDataRegressionAlgorithm(QCAlgorithm):
     def Initialize(self):
 
         self.SetStartDate(2011,9,13)   # Set Start Date
-        self.SetEndDate(2015,12,1)     # Set End Date
+        #self.SetEndDate(2015,12,1)     # Set End Date
+        self.SetEndDate(2011,9,14)     # Set End Date
         self.SetCash(100000)           # Set Strategy Cash
 
+        # Set your Tiingo API Token here
+        #Tiingo.SetAuthCode("9a596f5bd73a1470ce69bccb8cd5268db2a72780")
+        Tiingo.SetAuthCode("6c44375f029af567186df2b7434dcf324688ec5b")
+
         resolution = Resolution.Second if self.LiveMode else Resolution.Daily
-        self.AddData(Bitcoin, "BTC", resolution)
+        #self.AddData(YahooFinance, "2621.T")
+        #self.AddData(YahooFinance, "NDX", resolution)
+        #self.AddData(YahooFinance, "NDX")
+        self.ticker = self.AddEquity("QQQ", resolution)
+        #self.tiingo = self.AddData(TiingoPrice, self.ticker.Symbol, resolution)
+        #self.tiingo = self.AddData(YahooFinancePrice, self.ticker.Symbol, resolution)
+        self.tiingo = self.AddData(TiingoPrice, self.ticker.Symbol, resolution)
+
+        YahooFinancePrice.qa = self
 
     def OnData(self, data):
-        if not self.Portfolio.Invested:
-            if data['BTC'].Close != 0 :
-                self.Order('BTC', self.Portfolio.MarginRemaining/abs(data['BTC'].Close + 1))
+        self.Debug('onData')
+        for kvp in data.Bars:
+            symbol = kvp.Key
+            value = kvp.Value
+            if False:
+                self.Log("OnData(Slice): {0}: {1}: {2}".format(self.Time, symbol, value.Close))
+        for k, v in data.items():
+            if False:
+                self.Log("OnData: {0}: {1}: {2}".format(self.Time, k, v))
 
+        t = None
 
-class Bitcoin(PythonData):
-    '''Custom Data Type: Bitcoin data from Quandl - http://www.quandl.com/help/api-for-bitcoin-data'''
+        ticker = str(self.ticker)
+        if data.Bars.ContainsKey(ticker):
+            t = data.Bars[ticker]
+
+        ticker = self.tiingo.Symbol
+        if ticker in data:
+            t = data[ticker]
+
+        if t and not self.Portfolio.Invested:
+            self.Log(t.Value)
+            #if t.Close != 0 :
+            #    self.Debug('Order {} {} {}'.format(self.Time, t.Symbol, t.Symbol.Value))
+            #    self.Order(t.Symbol.Value, self.Portfolio.MarginRemaining / abs(t.Close + 1))
+            #    self.Order(t.Symbol, self.Portfolio.MarginRemaining / abs(t.Close + 1))
+
+json_data = '''
+[
+  {
+    "date": "2021-01-01T00:00:00.000Z",
+    "close": 27.44,
+  }
+]
+'''
+
+class YahooFinancePrice(PythonData):
+    '''Custom Data Type: symbol from yahoo finance'''
+
+    def __init__(self):
+        self.startDates = {}
+        super().__init__()
 
     def GetSource(self, config, date, isLiveMode):
+
         if isLiveMode:
-            return SubscriptionDataSource("https://www.bitstamp.net/api/ticker/", SubscriptionTransportMedium.Rest)
+            #return SubscriptionDataSource(url, SubscriptionTransportMedium.Rest)
+            return None
 
-        #return "http://my-ftp-server.com/futures-data-" + date.ToString("Ymd") + ".zip"
-        # OR simply return a fixed small data file. Large files will slow down your backtest
-        return SubscriptionDataSource("https://www.quantconnect.com/api/v2/proxy/quandl/api/v3/datasets/BCHARTS/BITSTAMPUSD.csv?order=asc&api_key=WyAazVXnq7ATy_fefTqm", SubscriptionTransportMedium.RemoteFile)
+        if not config.Symbol.Value in self.startDates:
+            start_date = datetime(date.year, date.month, date.day)
+            self.startDates[config.Symbol.Value] = start_date
+        else:
+            start_date = self.startDates[config.Symbol.Value]
 
+        t = datetime.today()
+        end_date = datetime(t.year, t.month, t.day) + timedelta(days = 1)
+        
+        start_seconds = int(start_date.timestamp())
+        end_seconds = int(end_date.timestamp())
+        url = "https://query1.finance.yahoo.com/v8/finance/chart/{}?period1={}&period2={}&interval=1d&events=div%2Csplits".format(config.Symbol.Value, start_seconds, end_seconds)
+        #url = "https://query1.finance.yahoo.com/v8/finance/chart/{}?period1={}&period2={}&interval=1d".format(config.Symbol.Value, start_seconds, end_seconds)
+        #YahooFinance.qa.Log(url)
+        #url = "https://query1.finance.yahoo.com/v8/finance/chart/{}?period1={}interval=1d&events=div%2Csplits".format(config.Symbol.Value, start_seconds)
+        return SubscriptionDataSource(url, SubscriptionTransportMedium.RemoteFile)
 
     def Reader(self, config, line, date, isLiveMode):
-        coin = Bitcoin()
-        coin.Symbol = config.Symbol
-
-        if isLiveMode:
-            # Example Line Format:
-            # {"high": "441.00", "last": "421.86", "timestamp": "1411606877", "bid": "421.96", "vwap": "428.58", "volume": "14120.40683975", "low": "418.83", "ask": "421.99"}
-            try:
-                liveBTC = json.loads(line)
-
-                # If value is zero, return None
-                value = liveBTC["last"]
-                if value == 0: return None
-
-                coin.Time = datetime.now()
-                coin.Value = value
-                coin["Open"] = float(liveBTC["open"])
-                coin["High"] = float(liveBTC["high"])
-                coin["Low"] = float(liveBTC["low"])
-                coin["Close"] = float(liveBTC["last"])
-                coin["Ask"] = float(liveBTC["ask"])
-                coin["Bid"] = float(liveBTC["bid"])
-                coin["VolumeBTC"] = float(liveBTC["volume"])
-                coin["WeightedPrice"] = float(liveBTC["vwap"])
-                return coin
-            except ValueError:
-                # Do nothing, possible error in json decoding
-                return None
-
-        # Example Line Format:
-        # Date      Open   High    Low     Close   Volume (BTC)    Volume (Currency)   Weighted Price
-        # 2011-09-13 5.8    6.0     5.65    5.97    58.37138238,    346.0973893944      5.929230648356
-        if not (line.strip() and line[0].isdigit()): return None
+        #YahooFinance.qa.Log(date)
+        yfin = YahooFinancePrice()
+        yfin.Symbol = config.Symbol
 
         try:
-            data = line.split(',')
-            coin.Time = datetime.strptime(data[0], "%Y-%m-%d")
-            coin.EndTime = coin.Time + timedelta(days=1)
-            coin.Value = float(data[4])
-            coin["Open"] = float(data[1])
-            coin["High"] = float(data[2])
-            coin["Low"] = float(data[3])
-            coin["Close"] = float(data[4])
-            coin["VolumeBTC"] = float(data[5])
-            coin["VolumeUSD"] = float(data[6])
-            coin["WeightedPrice"] = float(data[7])
-            return coin
+            data = json.loads(line)
+
+            tstamp = data["chart"]["result"][0]["timestamp"]
+            ohlc = data["chart"]["result"][0]["indicators"]["quote"][0]
+            if len(ohlc.keys()) == 0:
+                return None
+
+            items = []
+            for i in range(len(tstamp)):
+                item = {}
+                item["date"] = datetime.fromtimestamp(tstamp[i]).isoformat() + 'Z'
+                item["close"] = float(ohlc["close"][i])
+                items.append(item)
+            s = json.dumps(items, indent=4)
+            #YahooFinancePrice.qa.Debug(s)
+            tiingo = TiingoPrice()
+            return tiingo.Reader(config, s, date, isLiveMode)
 
         except ValueError:
             # Do nothing, possible error in json decoding
             return None
+

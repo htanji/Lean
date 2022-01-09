@@ -9,14 +9,19 @@
   "environment": "backtesting", // "live-paper", "backtesting", "live-interactive", "live-interactive-iqfeed"
 
   // algorithm class selector
-  "algorithm-type-name": "BasicTemplateFrameworkAlgorithm",
+  //"algorithm-type-name": "BasicTemplateAlgorithm",
+  //"algorithm-type-name": "CustomDataRegressionAlgorithm",
+  "algorithm-type-name": "TiingoPriceAlgorithm",
 
   // Algorithm language selector - options CSharp, Python
   "algorithm-language": "CSharp",
+  //"algorithm-language": "Python",
 
   //Physical DLL location
   "algorithm-location": "QuantConnect.Algorithm.CSharp.dll",
   //"algorithm-location": "../../../Algorithm.Python/BasicTemplateFrameworkAlgorithm.py",
+  //"algorithm-location": "../../../Algorithm.Python/CustomDataRegressionAlgorithm.py",
+  //"algorithm-location": "../../../Algorithm.Python/CustomDataBitcoinAlgorithm.py",
 
   //Research notebook
   //"composer-dll-directory": ".",

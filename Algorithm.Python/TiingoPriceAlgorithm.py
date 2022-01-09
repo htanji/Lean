@@ -30,10 +30,13 @@ class TiingoPriceAlgorithm(QCAlgorithm):
         self.SetCash(100000)
 
         # Set your Tiingo API Token here
-        Tiingo.SetAuthCode("my-tiingo-api-token")
+        #Tiingo.SetAuthCode("my-tiingo-api-token")
+        Tiingo.SetAuthCode("6c44375f029af567186df2b7434dcf324688ec5b")
 
+        #self.ticker = "VXX"
         self.ticker = "AAPL"
-        self.symbol = self.AddData(TiingoPrice, self.ticker, Resolution.Daily).Symbol
+        equity = self.AddEquity(self.ticker, Resolution.Daily).Symbol
+        self.symbol = self.AddData(TiingoPrice, equity, Resolution.Daily).Symbol
 
         self.emaFast = self.EMA(self.symbol, 5)
         self.emaSlow = self.EMA(self.symbol, 10)
