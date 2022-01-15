@@ -69,7 +69,7 @@ namespace QuantConnect.Data.Custom.YahooFinance
                 symbol = symbol.Trim('$');
             }
             var source = Invariant($"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?period1={startSeconds}&period2={endSeconds}&interval=1d&events=div%2Csplits");
-            //Log.Trace(source);
+            Log.Debug(source);
             return new SubscriptionDataSource(source, SubscriptionTransportMedium.RemoteFile, FileFormat.UnfoldingCollection);
         }
 
@@ -101,16 +101,21 @@ namespace QuantConnect.Data.Custom.YahooFinance
 
             for (int i = 0; i < c_tstamp; i++) {
                 var item = new YahooFinancePrice();
-                item.Date = DateTimeOffset.FromUnixTimeSeconds((long)tstamp[i]).DateTime;
-                item.Open = (decimal)ohlc["open"][i];
-                item.High = (decimal)ohlc["high"][i];
-                item.Low = (decimal)ohlc["low"][i];
-                item.Close = (decimal)ohlc["close"][i];
-                item.AdjustedClose = (decimal)adjclose["adjclose"][i];
-                item.Symbol = config.Symbol;
-                item.Time = item.Date;
-                item.Value = item.Close;
-                list.Add(item);
+                try {
+                    item.Date = DateTimeOffset.FromUnixTimeSeconds((long)tstamp[i]).DateTime;
+                    item.Open = (decimal)ohlc["open"][i];
+                    item.High = (decimal)ohlc["high"][i];
+                    item.Low = (decimal)ohlc["low"][i];
+                    item.Close = (decimal)ohlc["close"][i];
+                    item.AdjustedClose = (decimal)adjclose["adjclose"][i];
+                    item.Symbol = config.Symbol;
+                    item.Time = item.Date;
+                    item.Value = item.Close;
+                    list.Add(item);
+                } catch (Exception e) {
+                    Log.Trace($"Symbol: {config.Symbol} Date: {item.Date}");
+                    Log.Trace(e.ToString());
+                }
             }
 
             return new BaseDataCollection(date, config.Symbol, list);

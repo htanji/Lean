@@ -31,7 +31,8 @@ namespace QuantConnect.Algorithm.CSharp
     {
         //private const string Ticker = "AAPL";
         //private const string Ticker = "VXX";
-        private const string Ticker = "XLE$";
+        //private const string Ticker = "XLE$";
+        private const string Ticker = "SPY";
         private Symbol _symbol;
 
         private ExponentialMovingAverage _emaFast;
