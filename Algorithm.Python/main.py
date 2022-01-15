@@ -1,35 +1,63 @@
-# QUANTCONNECT.COM - Democratizing Finance, Empowering Individuals.
-# Lean Algorithmic Trading Engine v2.0. Copyright 2014 QuantConnect Corporation.
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); 
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-# 
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 from AlgorithmImports import *
+from QuantConnect.Data.Custom.Tiingo import *
+from QuantConnect.Data.Custom.YahooFinance import *
+import dateutil
 
-class BasicTemplateAlgorithm(QCAlgorithm):
-    '''Basic template algorithm simply initializes the date range and cash'''
+
+class Test(QCAlgorithm):
+
+    def isLocal(self):
+        return True
+
+    def addTiingo(self, data, res):
+        return (self.AddData(TiingoPrice, data.Symbol, res) if self.isLocal() else data).Symbol
+        # return data.Symbol
+
+    def addYahoo(self, data, res):
+        return (self.AddData(YahooFinancePrice, data.Symbol, res) if self.isLocal() else data).Symbol
+
+    def myLog(self, log):
+        self.Log(log if not self.isLocal()
+                 else "{}: {}".format(self.Time, log))
 
     def Initialize(self):
-        '''Initialise the data and resolution required, as well as the cash and start-end dates for your algorithm. All algorithms must initialized.'''
-        
-        self.SetStartDate(2013,10,7)   #Set Start Date
-        self.SetEndDate(2013,10,11)    #Set End Date
-        self.SetCash(100000)           #Set Strategy Cash
-        # Find more symbols here: http://quantconnect.com/data
-        self.AddEquity("SPY", Resolution.Second)
 
-    def OnData(self, data):
-        '''OnData event is the primary entry point for your algorithm. Each new data point will be pumped in here.
-        
-        Arguments:
-            data: Slice object keyed by symbol containing the stock data
-        '''
-        if not self.Portfolio.Invested:
-            self.SetHoldings("SPY", 1)
+        start_date = '2021/12/08'
+        end_date = str(datetime.today())
+
+        self.SetStartDate(dateutil.parser.parse(start_date))
+        self.SetEndDate(dateutil.parser.parse(end_date))
+
+        self.cap = 100000
+        self.SetCash(self.cap)
+
+        Tiingo.SetAuthCode("6c44375f029af567186df2b7434dcf324688ec5b")
+
+        res = Resolution.Minute if not self.isLocal() else Resolution.Daily
+
+        self.BND1 = self.addTiingo(self.AddEquity('TLT', res), res) # 20+yrs
+        self.BND2 = self.addTiingo(self.AddEquity('IEF', res), res) # 7yrs
+        self.VIX  = self.addTiingo(self.AddEquity('VXXB', res), res) # VIX
+
+        self.MRKT = self.addTiingo(self.AddEquity('SPY', res), res)  # market
+        self.GOLD = self.addTiingo(self.AddEquity('GLD', res), res)  # gold
+        self.SLVA = self.addTiingo(self.AddEquity('SLV', res), res)  # vs silver
+        self.UTIL = self.addTiingo(self.AddEquity('XLU', res), res)  # utilities
+        self.INDU = self.addTiingo(self.AddEquity('XLI', res), res)  # vs industrials
+        self.METL = self.addTiingo(self.AddEquity('DBB', res), res)  # input prices (metals)
+        self.USDX = self.addTiingo(self.AddEquity('UUP', res), res)  # safe haven (USD)
+        self.FNCE = self.addTiingo(self.AddEquity('XLF', res), res)  # financial
+
+        self.symbols = [self.MRKT, self.GOLD, self.SLVA, self.UTIL, self.INDU, self.METL, self.USDX, self.FNCE, self.BND1, self.BND2]
+
+        if True:
+            for symbol in self.symbols:
+                self.consolidator = TradeBarConsolidator(timedelta(days=1))
+                self.consolidator.DataConsolidated += self.consolidation_handler
+                self.SubscriptionManager.AddConsolidator(symbol, self.consolidator)
+
+        self.History(self.symbols, 10, Resolution.Daily)
+
+    def consolidation_handler(self, sender, consolidated):
+        self.myLog("update {} {}".format(self.Time, consolidated))
+

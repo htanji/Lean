@@ -21,6 +21,7 @@ using NodaTime;
 using QuantConnect.Data.Market;
 using QuantConnect.Data.UniverseSelection;
 using static QuantConnect.StringExtensions;
+using QuantConnect.Logging;
 
 namespace QuantConnect.Data.Custom.Tiingo
 {
@@ -31,7 +32,7 @@ namespace QuantConnect.Data.Custom.Tiingo
     /// <remarks>Requires setting <see cref="Tiingo.AuthCode"/></remarks>
     public class TiingoPrice : TradeBar
     {
-        private readonly ConcurrentDictionary<string, DateTime> _startDates = new ConcurrentDictionary<string, DateTime>();
+        private static readonly ConcurrentDictionary<string, DateTime> _startDates = new ConcurrentDictionary<string, DateTime>();
 
         /// <summary>
         /// The end time of this data. Some data covers spans (trade bars) and as such we want
@@ -146,14 +147,17 @@ namespace QuantConnect.Data.Custom.Tiingo
         public override SubscriptionDataSource GetSource(SubscriptionDataConfig config, DateTime date, bool isLiveMode)
         {
             DateTime startDate;
+            //Log.Trace(config.Symbol.Value);
             if (!_startDates.TryGetValue(config.Symbol.Value, out startDate))
             {
                 startDate = date;
                 _startDates.TryAdd(config.Symbol.Value, startDate);
+                //Log.Trace(startDate.ToString());
             }
 
             var tiingoTicker = TiingoSymbolMapper.GetTiingoTicker(config.Symbol);
             var source = Invariant($"https://api.tiingo.com/tiingo/daily/{tiingoTicker}/prices?startDate={startDate:yyyy-MM-dd}&token={Tiingo.AuthCode}");
+            //Log.Trace(source);
             return new SubscriptionDataSource(source, SubscriptionTransportMedium.RemoteFile, FileFormat.UnfoldingCollection);
         }
 

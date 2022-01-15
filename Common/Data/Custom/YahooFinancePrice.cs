@@ -34,7 +34,7 @@ namespace QuantConnect.Data.Custom.YahooFinance
     /// <remarks>Requires setting <see cref="Tiingo.AuthCode"/></remarks>
     public class YahooFinancePrice : TiingoPrice
     {
-        private readonly ConcurrentDictionary<string, DateTime> _startDates = new ConcurrentDictionary<string, DateTime>();
+        private static readonly ConcurrentDictionary<string, DateTime> _startDates = new ConcurrentDictionary<string, DateTime>();
 
         /// <summary>
         /// Initializes an instance of the <see cref="YahooFinancePrice"/> class.
@@ -69,7 +69,8 @@ namespace QuantConnect.Data.Custom.YahooFinance
                 symbol = symbol.Trim('$');
             }
             var source = Invariant($"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?period1={startSeconds}&period2={endSeconds}&interval=1d&events=div%2Csplits");
-            Log.Debug(source);
+            //Log.Debug(source);
+            //Log.Trace(source);
             return new SubscriptionDataSource(source, SubscriptionTransportMedium.RemoteFile, FileFormat.UnfoldingCollection);
         }
 
