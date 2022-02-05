@@ -6,24 +6,25 @@
   // two predefined environments, 'backtesting' and 'live', feel free
   // to add more!
 
-  "environment": "backtesting", // "live-paper", "backtesting", "live-interactive", "live-interactive-iqfeed"
+  //"environment": "backtesting", // "live-paper", "backtesting", "live-interactive", "live-interactive-iqfeed"
+  "environment": "live-paper", // "live-paper", "backtesting", "live-interactive", "live-interactive-iqfeed"
 
   // algorithm class selector
   //"algorithm-type-name": "BasicTemplateAlgorithm",
   //"algorithm-type-name": "CustomDataRegressionAlgorithm",
-  //"algorithm-type-name": "TiingoPriceAlgorithm",
-  "algorithm-type-name": "CFD_InOut",
+  "algorithm-type-name": "TiingoPriceAlgorithm",
+  //"algorithm-type-name": "CFD_InOut",
 
   // Algorithm language selector - options CSharp, Python
-  //"algorithm-language": "CSharp",
-  "algorithm-language": "Python",
+  "algorithm-language": "CSharp",
+  //"algorithm-language": "Python",
 
   //Physical DLL location
-  //"algorithm-location": "QuantConnect.Algorithm.CSharp.dll",
+  "algorithm-location": "QuantConnect.Algorithm.CSharp.dll",
   //"algorithm-location": "../../../Algorithm.Python/BasicTemplateFrameworkAlgorithm.py",
   //"algorithm-location": "../../../Algorithm.Python/CustomDataRegressionAlgorithm.py",
   //"algorithm-location": "../../../Algorithm.Python/CustomDataBitcoinAlgorithm.py",
-  "algorithm-location": "../../../Algorithm.Python/main.py",
+  //"algorithm-location": "../../../Algorithm.Python/main.py",
 
   //Research notebook
   //"composer-dll-directory": ".",
@@ -245,6 +246,7 @@
       "data-feed-handler": "QuantConnect.Lean.Engine.DataFeeds.LiveTradingDataFeed",
       "data-queue-handler": [ "QuantConnect.Lean.Engine.DataFeeds.Queues.LiveDataQueue" ],
       "real-time-handler": "QuantConnect.Lean.Engine.RealTime.LiveTradingRealTimeHandler",
+      "history-provider": "QuantConnect.Lean.Engine.HistoricalData.SubscriptionDataReaderHistoryProvider",
       "transaction-handler": "QuantConnect.Lean.Engine.TransactionHandlers.BacktestingTransactionHandler"
     },
 

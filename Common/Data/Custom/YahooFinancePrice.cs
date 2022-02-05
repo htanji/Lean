@@ -64,14 +64,10 @@ namespace QuantConnect.Data.Custom.YahooFinance
             var startSeconds = new DateTimeOffset(startDate).ToUnixTimeSeconds();
             var endSeconds = new DateTimeOffset(DateTime.Today).AddDays(1).ToUnixTimeSeconds();
             String symbol = config.Symbol.Value;
-            if (symbol.EndsWith('$')) {
-                startSeconds = 7223400;
-                symbol = symbol.Trim('$');
-            }
             var source = Invariant($"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?period1={startSeconds}&period2={endSeconds}&interval=1d&events=div%2Csplits");
             //Log.Debug(source);
-            //Log.Trace(source);
-            return new SubscriptionDataSource(source, SubscriptionTransportMedium.RemoteFile, FileFormat.UnfoldingCollection);
+            Log.Trace(source);
+            return new SubscriptionDataSource(source, isLiveMode ? SubscriptionTransportMedium.Rest : SubscriptionTransportMedium.RemoteFile, FileFormat.UnfoldingCollection);
         }
 
         /// <summary>
@@ -120,6 +116,15 @@ namespace QuantConnect.Data.Custom.YahooFinance
             }
 
             return new BaseDataCollection(date, config.Symbol, list);
+        }
+
+        /// <summary>
+        /// Indicates if there is support for mapping
+        /// </summary>
+        /// <returns>True indicates mapping should be used</returns>
+        public override bool RequiresMapping()
+        {
+            return false;
         }
     }
 }

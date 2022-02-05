@@ -19,6 +19,8 @@ COPY ./AlphaStreams/QuantConnect.AlphaStream/bin/Debug/ /Lean/Launcher/bin/Debug
 COPY ./Lean/Launcher/bin/Debug/ /Lean/Launcher/bin/Debug/
 COPY ./Lean/Optimizer.Launcher/bin/Debug/ /Lean/Optimizer.Launcher/bin/Debug/
 COPY ./Lean/Report/bin/Debug/ /Lean/Report/bin/Debug/
+COPY ./Lean/Report/bin/Debug/ /Lean/Report/bin/Debug/
+COPY ./Lean/Lean.DataSource.NasdaqDataLink/bin/Debug/net5.0/ /Lean/Launcher/bin/Debug/
 
 # Can override with '-w'
 WORKDIR /Lean/Launcher/bin/Debug
