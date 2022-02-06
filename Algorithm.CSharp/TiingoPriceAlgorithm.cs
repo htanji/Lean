@@ -54,17 +54,26 @@ namespace QuantConnect.Algorithm.CSharp
             //Tiingo.SetAuthCode("9a596f5bd73a1470ce69bccb8cd5268db2a72780");
             Tiingo.SetAuthCode("6c44375f029af567186df2b7434dcf324688ec5b");
 
-            //var equity = AddEquity(Ticker, Resolution.Daily).Symbol;
-            var equity = "^NDX";
-
+            var security = AddSecurity(SecurityType.Equity, "^NDX", Resolution.Daily);
+            var equity = security.Symbol;
+            //var equity = AddEquity("^NDX", Resolution.Daily).Symbol;
+            //var equity = AddEquity("SPY", Resolution.Daily).Symbol;
+            //_symbol = equity;
             _symbol = AddData<YahooFinancePrice>(equity, Resolution.Daily).Symbol;
+            //var equity = "^NDX";
+
+            //_symbol = AddData<YahooFinancePrice>(equity, Resolution.Daily).Symbol;
             //_symbol = AddData<TiingoPrice>(equity, Resolution.Daily).Symbol;
+            //_symbol = equity;
  
             _emaFast = EMA(_symbol, 5);
             _emaSlow = EMA(_symbol, 10);
 
             var history = History(_symbol, 200, Resolution.Daily);
-            Log(history.ToString());
+            foreach (var data in history)
+                {
+                    Logging.Log.Trace("History: " + data.Symbol.Value + ": " + data.Time + " > " + data.Close);
+                }
         }
 
         /// <summary>

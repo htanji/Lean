@@ -42,7 +42,7 @@ namespace QuantConnect.Data.Custom.YahooFinance
         public YahooFinancePrice()
         {
             Symbol = Symbol.Empty;
-            DataType = MarketDataType.Base;
+            DataType = MarketDataType.TradeBar;
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace QuantConnect.Data.Custom.YahooFinance
             DateTime startDate;
             if (!_startDates.TryGetValue(config.Symbol.Value, out startDate))
             {
-                startDate = date;
+                startDate = isLiveMode ? date.AddDays(-5) : date;
                 _startDates.TryAdd(config.Symbol.Value, startDate);
             }
 
@@ -66,7 +66,8 @@ namespace QuantConnect.Data.Custom.YahooFinance
             String symbol = config.Symbol.Value;
             var source = Invariant($"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?period1={startSeconds}&period2={endSeconds}&interval=1d&events=div%2Csplits");
             //Log.Debug(source);
-            Log.Trace(source);
+            if (isLiveMode)
+                Log.Trace(source);
             return new SubscriptionDataSource(source, isLiveMode ? SubscriptionTransportMedium.Rest : SubscriptionTransportMedium.RemoteFile, FileFormat.UnfoldingCollection);
         }
 
