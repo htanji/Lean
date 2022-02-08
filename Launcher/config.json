@@ -13,6 +13,7 @@
   //"algorithm-type-name": "BasicTemplateAlgorithm",
   //"algorithm-type-name": "CustomDataRegressionAlgorithm",
   "algorithm-type-name": "TiingoPriceAlgorithm",
+  //"algorithm-type-name": "LiveTradingFeaturesAlgorithm",
   //"algorithm-type-name": "OpeningBreakoutAlgorithm",
   //"algorithm-type-name": "CFD_InOut",
 
@@ -244,8 +245,8 @@
 
       "setup-handler": "QuantConnect.Lean.Engine.Setup.BrokerageSetupHandler",
       "result-handler": "QuantConnect.Lean.Engine.Results.LiveTradingResultHandler",
-      //"data-feed-handler": "QuantConnect.Lean.Engine.DataFeeds.LiveTradingDataFeed",
-      "data-feed-handler": "QuantConnect.Lean.Engine.DataFeeds.FileSystemDataFeed",
+      "data-feed-handler": "QuantConnect.Lean.Engine.DataFeeds.LiveTradingDataFeed",
+      //"data-feed-handler": "QuantConnect.Lean.Engine.DataFeeds.FileSystemDataFeed",
       "data-queue-handler": [ "QuantConnect.Lean.Engine.DataFeeds.Queues.LiveDataQueue" ],
       "real-time-handler": "QuantConnect.Lean.Engine.RealTime.LiveTradingRealTimeHandler",
       "history-provider": "QuantConnect.Lean.Engine.HistoricalData.SubscriptionDataReaderHistoryProvider",

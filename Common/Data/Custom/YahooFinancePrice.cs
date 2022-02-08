@@ -54,21 +54,28 @@ namespace QuantConnect.Data.Custom.YahooFinance
         /// <returns>String URL of source file.</returns>
         public override SubscriptionDataSource GetSource(SubscriptionDataConfig config, DateTime date, bool isLiveMode)
         {
-            DateTime startDate;
-            if (!_startDates.TryGetValue(config.Symbol.Value, out startDate))
-            {
-                startDate = isLiveMode ? date.AddDays(-5) : date;
-                _startDates.TryAdd(config.Symbol.Value, startDate);
+            long startSeconds;
+            long endSeconds;
+            if (isLiveMode) {
+                startSeconds = new DateTimeOffset(date).ToUnixTimeSeconds();
+                endSeconds = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+            } else {
+                DateTime startDate;
+                if (!_startDates.TryGetValue(config.Symbol.Value, out startDate))
+                {
+                    startDate = date;
+                    _startDates.TryAdd(config.Symbol.Value, startDate);
+                }
+                startSeconds = new DateTimeOffset(startDate).ToUnixTimeSeconds();
+                endSeconds = new DateTimeOffset(DateTime.Today).AddDays(1).ToUnixTimeSeconds();
             }
-
-            var startSeconds = new DateTimeOffset(startDate).ToUnixTimeSeconds();
-            var endSeconds = new DateTimeOffset(DateTime.Today).AddDays(1).ToUnixTimeSeconds();
             String symbol = config.Symbol.Value;
             var source = Invariant($"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?period1={startSeconds}&period2={endSeconds}&interval=1d&events=div%2Csplits");
+            //Log.Trace(source);
             //Log.Debug(source);
-            if (isLiveMode)
+            if (true || isLiveMode)
                 Log.Trace(source);
-            return new SubscriptionDataSource(source, isLiveMode ? SubscriptionTransportMedium.Rest : SubscriptionTransportMedium.RemoteFile, FileFormat.UnfoldingCollection);
+            return new SubscriptionDataSource(source, SubscriptionTransportMedium.RemoteFile, FileFormat.UnfoldingCollection);
         }
 
         /// <summary>
@@ -114,6 +121,11 @@ namespace QuantConnect.Data.Custom.YahooFinance
                     Log.Trace($"Symbol: {config.Symbol} Date: {item.Date}");
                     Log.Trace(e.ToString());
                 }
+            }
+
+            if (isLiveMode) {
+                var endtime = DateTime.UtcNow.ConvertFromUtc(config.ExchangeTimeZone);
+                return new BaseDataCollection(date, endtime, config.Symbol, list);
             }
 
             return new BaseDataCollection(date, config.Symbol, list);

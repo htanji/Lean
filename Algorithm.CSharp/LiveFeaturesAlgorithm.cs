@@ -39,13 +39,13 @@ namespace QuantConnect.Algorithm.CSharp
         {
             SetStartDate(2013, 10, 7);
             SetEndDate(2013, 10, 11);
-            SetCash(25000);
+            SetCash(250000);
 
             //Equity Data for US Markets:
-            AddSecurity(SecurityType.Equity, "IBM", Resolution.Second);
+            //AddSecurity(SecurityType.Equity, "IBM", Resolution.Second);
 
             //FOREX Data for Weekends: 24/6
-            AddSecurity(SecurityType.Forex, "EURUSD", Resolution.Minute);
+            //AddSecurity(SecurityType.Forex, "EURUSD", Resolution.Minute);
 
             //Custom/Bitcoin Live Data: 24/7
             AddData<Bitcoin>("BTC", Resolution.Second, TimeZones.Utc);
@@ -65,7 +65,8 @@ namespace QuantConnect.Algorithm.CSharp
 
             if (!Portfolio.HoldStock)
             {
-                Order("BTC", 100);
+                //Order("BTC", 100);
+                Order("BTC", 1);
 
                 //Send a notification email/SMS/web request on events:
                 Notify.Email("myemail@gmail.com", "Test", "Test Body", "test attachment");

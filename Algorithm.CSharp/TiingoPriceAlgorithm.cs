@@ -32,7 +32,10 @@ namespace QuantConnect.Algorithm.CSharp
         //private const string Ticker = "AAPL";
         //private const string Ticker = "VXX";
         //private const string Ticker = "XLE$";
-        private const string Ticker = "SPY";
+        //private const string Ticker = "SPY";
+        private const string Ticker = "GC=F";
+        //private const string Ticker = "^VIX";
+        //private const string Ticker = "^NDX";
         private Symbol _symbol;
 
         private ExponentialMovingAverage _emaFast;
@@ -54,12 +57,12 @@ namespace QuantConnect.Algorithm.CSharp
             //Tiingo.SetAuthCode("9a596f5bd73a1470ce69bccb8cd5268db2a72780");
             Tiingo.SetAuthCode("6c44375f029af567186df2b7434dcf324688ec5b");
 
-            var security = AddSecurity(SecurityType.Equity, "^NDX", Resolution.Daily);
-            var equity = security.Symbol;
+            //var security = AddSecurity(SecurityType.Equity, "^NDX", Resolution.Daily);
+            //var equity = security.Symbol;
             //var equity = AddEquity("^NDX", Resolution.Daily).Symbol;
             //var equity = AddEquity("SPY", Resolution.Daily).Symbol;
             //_symbol = equity;
-            _symbol = AddData<YahooFinancePrice>(equity, Resolution.Daily).Symbol;
+            _symbol = AddData<YahooFinancePrice>(Ticker, Resolution.Daily).Symbol;
             //var equity = "^NDX";
 
             //_symbol = AddData<YahooFinancePrice>(equity, Resolution.Daily).Symbol;
@@ -70,10 +73,9 @@ namespace QuantConnect.Algorithm.CSharp
             _emaSlow = EMA(_symbol, 10);
 
             var history = History(_symbol, 200, Resolution.Daily);
-            foreach (var data in history)
-                {
-                    Logging.Log.Trace("History: " + data.Symbol.Value + ": " + data.Time + " > " + data.Close);
-                }
+            foreach (var data in history) {
+                Logging.Log.Trace("History: " + data.Symbol.Value + ": " + data.Time + " > " + data.Close);
+            }
         }
 
         /// <summary>
@@ -82,6 +84,10 @@ namespace QuantConnect.Algorithm.CSharp
         /// <param name="slice">Slice object keyed by symbol containing the stock data</param>
         public override void OnData(Slice slice)
         {
+            if (slice.ContainsKey(Ticker)) {
+                Log($"{Time} {slice[Ticker].Price}");
+            }
+
             // Extract Tiingo data from the slice
             var tiingoData = slice.Get<YahooFinancePrice>();
             foreach (var row in tiingoData.Values)
