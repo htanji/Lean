@@ -104,6 +104,27 @@ namespace QuantConnect.Data.Custom.YahooFinance
                 return null;
             }
 
+            if (isLiveMode) {
+                var item = new YahooFinancePrice();
+                int i = c_tstamp - 1;
+                try {
+                    item.Date = DateTimeOffset.FromUnixTimeSeconds((long)tstamp[i]).DateTime;
+                    item.Open = (decimal)ohlc["open"][i];
+                    item.High = (decimal)ohlc["high"][i];
+                    item.Low = (decimal)ohlc["low"][i];
+                    item.Close = (decimal)ohlc["close"][i];
+                    item.AdjustedClose = (decimal)adjclose["adjclose"][i];
+                    item.Symbol = config.Symbol;
+                    item.Time = item.Date;
+                    item.Value = item.Close;
+                    item.EndTime = DateTime.UtcNow.ConvertFromUtc(config.ExchangeTimeZone);
+                } catch (Exception e) {
+                    Log.Trace($"Symbol: {config.Symbol} Date: {item.Date}");
+                    Log.Trace(e.ToString());
+                }
+                return item;
+            }
+
             for (int i = 0; i < c_tstamp; i++) {
                 var item = new YahooFinancePrice();
                 try {
@@ -123,12 +144,7 @@ namespace QuantConnect.Data.Custom.YahooFinance
                 }
             }
 
-            if (isLiveMode) {
-                var endtime = DateTime.UtcNow.ConvertFromUtc(config.ExchangeTimeZone);
-                return new BaseDataCollection(date, endtime, config.Symbol, list);
-            }
-
-            return new BaseDataCollection(date, config.Symbol, list);
+         return new BaseDataCollection(date, config.Symbol, list);
         }
 
         /// <summary>

@@ -1,0 +1,3 @@
+[submodule "Lean.DataSource.NasdaqDataLink"]
+	path = Lean.DataSource.NasdaqDataLink
+	url = https://github.com/QuantConnect/Lean.DataSource.NasdaqDataLink
