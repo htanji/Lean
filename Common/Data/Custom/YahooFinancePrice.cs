@@ -73,8 +73,10 @@ namespace QuantConnect.Data.Custom.YahooFinance
             var source = Invariant($"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?period1={startSeconds}&period2={endSeconds}&interval=1d&events=div%2Csplits");
             //Log.Trace(source);
             //Log.Debug(source);
-            if (true || isLiveMode)
+            if (isLiveMode) {
                 Log.Trace(source);
+                return new SubscriptionDataSource(source, SubscriptionTransportMedium.RemoteFile, FileFormat.UnfoldingCollection, new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("Timeout", "8000")}); 
+            }
             return new SubscriptionDataSource(source, SubscriptionTransportMedium.RemoteFile, FileFormat.UnfoldingCollection);
         }
 
@@ -92,7 +94,7 @@ namespace QuantConnect.Data.Custom.YahooFinance
         /// </returns>
         public override BaseData Reader(SubscriptionDataConfig config, string content, DateTime date, bool isLiveMode)
         {
-           	dynamic data = Newtonsoft.Json.JsonConvert.DeserializeObject(content);
+            dynamic data = Newtonsoft.Json.JsonConvert.DeserializeObject(content);
             List<YahooFinancePrice> list = new List<YahooFinancePrice>();
 
             var tstamp = data["chart"]["result"][0]["timestamp"];
@@ -140,7 +142,7 @@ namespace QuantConnect.Data.Custom.YahooFinance
         {
             return false;
         }
-    
+
         /// <summary>
         /// The period of this trade bar, (second, minute, daily, ect...)
         /// </summary>

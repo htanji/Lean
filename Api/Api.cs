@@ -951,6 +951,18 @@ namespace QuantConnect.Api
             //
         }
 
+        private class MyWebClient : WebClient
+        {
+            public Int32 _Timeout;
+
+            protected override WebRequest GetWebRequest(Uri uri)
+            {
+                WebRequest w = base.GetWebRequest(uri);
+                w.Timeout = _Timeout;
+                return w;
+            }
+        }
+
         /// <summary>
         /// Local implementation for downloading data to algorithms
         /// </summary>
@@ -961,14 +973,18 @@ namespace QuantConnect.Api
         /// <returns></returns>
         public virtual string Download(string address, IEnumerable<KeyValuePair<string, string>> headers, string userName, string password)
         {
-            using (var client = new WebClient { Credentials = new NetworkCredential(userName, password) })
+            using (var client = new MyWebClient { Credentials = new NetworkCredential(userName, password) })
             {
                 client.Proxy = WebRequest.GetSystemWebProxy();
                 if (headers != null)
                 {
                     foreach (var header in headers)
                     {
-                        client.Headers.Add(header.Key, header.Value);
+                        if (header.Key == "Timeout") {
+                            client._Timeout = header.Value.ToInt32();
+                        } else {
+                            client.Headers.Add(header.Key, header.Value);
+                        }
                     }
                 }
                 // Add a user agent header in case the requested URI contains a query.
