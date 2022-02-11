@@ -30,6 +30,7 @@ using QuantConnect.Optimizer.Parameters;
 using QuantConnect.Orders;
 using QuantConnect.Statistics;
 using QuantConnect.Util;
+using Polly;
 
 namespace QuantConnect.Api
 {
@@ -992,7 +993,12 @@ namespace QuantConnect.Api
 
                 try
                 {
-                    return client.DownloadString(address);
+                    //return client.DownloadString(address);
+                    // WebException に含まれるステータスコードが 503 の場合には 3 回までリトライする
+                    // リトライしても失敗した場合には例外が再スローされる
+                    return Policy.Handle<WebException>(ex => ((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.RequestTimeout)
+                    .Retry(3)
+                    .Execute(() => client.DownloadString(address));
                 }
                 catch (WebException exception)
                 {
