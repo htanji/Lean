@@ -62,7 +62,7 @@ namespace QuantConnect.Algorithm.CSharp
             //var equity = AddEquity("^NDX", Resolution.Daily).Symbol;
             //var equity = AddEquity("SPY", Resolution.Daily).Symbol;
             //_symbol = equity;
-            _symbol = AddData<YahooFinancePrice>(Ticker, Resolution.Daily).Symbol;
+            _symbol = AddData<YahooFinancePrice>(Ticker, Resolution.Second).Symbol;
             //var equity = "^NDX";
 
             //_symbol = AddData<YahooFinancePrice>(equity, Resolution.Daily).Symbol;
