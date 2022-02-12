@@ -72,7 +72,8 @@ namespace QuantConnect.Algorithm.CSharp
             _emaFast = EMA(_symbol, 5);
             _emaSlow = EMA(_symbol, 10);
 
-            var history = History(_symbol, 200, Resolution.Daily);
+            //var history = History(_symbol, 200, Resolution.Daily);
+            var history = History(_symbol, 5, Resolution.Daily);
             foreach (var data in history) {
                 Logging.Log.Trace("History: " + data.Symbol.Value + ": " + data.Time + " > " + data.Close);
             }

@@ -954,7 +954,7 @@ namespace QuantConnect.Api
 
         private class MyWebClient : WebClient
         {
-            public Int32 _Timeout;
+            public Int32 _Timeout = 10000;
 
             protected override WebRequest GetWebRequest(Uri uri)
             {

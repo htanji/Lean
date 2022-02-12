@@ -73,11 +73,11 @@ namespace QuantConnect.Data.Custom.YahooFinance
             var source = Invariant($"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?period1={startSeconds}&period2={endSeconds}&interval=1d&events=div%2Csplits");
             //Log.Trace(source);
             //Log.Debug(source);
-            if (isLiveMode) {
-                Log.Trace(source);
-                return new SubscriptionDataSource(source, SubscriptionTransportMedium.RemoteFile, FileFormat.UnfoldingCollection, new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("Timeout", "8000")}); 
-            }
-            return new SubscriptionDataSource(source, SubscriptionTransportMedium.RemoteFile, FileFormat.UnfoldingCollection);
+            return new SubscriptionDataSource(source, SubscriptionTransportMedium.RemoteFile, FileFormat.UnfoldingCollection, new List<KeyValuePair<string, string>> {
+                     new KeyValuePair<string, string>("Timeout", isLiveMode ? "5000" : "15000"),
+                     new KeyValuePair<string, string>(
+                         "User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36")
+            }); 
         }
 
         /// <summary>
