@@ -26,8 +26,8 @@
   //"algorithm-location": "../../../Algorithm.Python/BasicTemplateFrameworkAlgorithm.py",
   //"algorithm-location": "../../../Algorithm.Python/CustomDataRegressionAlgorithm.py",
   //"algorithm-location": "../../../Algorithm.Python/CustomDataBitcoinAlgorithm.py",
-  //"algorithm-location": "../../../Algorithm.Python/main.py",
-  "algorithm-location": "../../../Algorithm.Python/main2.py",
+  "algorithm-location": "../../../Algorithm.Python/main.py",
+  //"algorithm-location": "../../../Algorithm.Python/main2.py",
 
   //Research notebook
   //"composer-dll-directory": ".",

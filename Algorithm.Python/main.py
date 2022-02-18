@@ -21,11 +21,11 @@ https://www.quantconnect.com/forum/discussion/9597/the-in-amp-out-strategy-conti
 
 from AlgorithmImports import *
 from QuantConnect.Data.Custom.Tiingo import *
+from QuantConnect.Data.Custom.YahooFinance import *
 from my_custom_data import CboeVix, CboeVxV
 
 import dateutil
 import sendmail
-#from YahooFinancePrice import *
 
 
 
@@ -37,11 +37,9 @@ hostname = os.uname()[1]
 
 def isLocal():
     hostname = os.uname()[1]
-    return hostname in local_hosts
+    #return hostname in local_hosts
+    return True
 
-#if isLocal():
-#    from QuantConnect.Data.Custom.YahooFinance import *
-from QuantConnect.Data.Custom.YahooFinance import *
 
 class CFD_InOut(QCAlgorithm):
 
@@ -171,6 +169,7 @@ class CFD_InOut(QCAlgorithm):
         self.BND3 = self.addTiingo('SHY', res, 5) # 7yrs
         #self.VIX = self.addYahoo("^VIX", res, 10)
 
+        self.myLog(isLocal())
         if True and isLocal():
             # YahooFinancePriceを使用する
             self.STKS = self.addYahoo("^NDX", res, 10)
@@ -226,8 +225,10 @@ class CFD_InOut(QCAlgorithm):
         self.HLD_OUT = { self.GLD: out_leverage }
         #self.HLD_OUT = {self.BND1: 3.5}
 
-        self.VIX_MA_SLOW = int(self.GetParameter("VIX_MA_SLOW"))
-        self.VIX_MA_FAST = int(self.GetParameter("VIX_MA_FAST"))
+        #self.VIX_MA_SLOW = int(self.GetParameter("VIX_MA_SLOW"))
+        #self.VIX_MA_FAST = int(self.GetParameter("VIX_MA_FAST"))
+        self.VIX_MA_SLOW = 10 
+        self.VIX_MA_FAST = 5
 
         #if not self.LiveMode:
         self.SetBenchmark("SPY")
@@ -242,8 +243,10 @@ class CFD_InOut(QCAlgorithm):
 
         # Specific variables
         self.DISTILLED_BEAR = False
-        self.VOLA_LOOKBACK = int(self.GetParameter("VOLA_LOOKBACK"))
-        self.WAITD_CONSTANT = int(self.GetParameter("WAITD_CONSTANT"))
+        #self.VOLA_LOOKBACK = int(self.GetParameter("VOLA_LOOKBACK"))
+        #self.WAITD_CONSTANT = int(self.GetParameter("WAITD_CONSTANT"))
+        self.VOLA_LOOKBACK = 126
+        self.WAITD_CONSTANT = 90
         self.DCOUNT = 0  # count of total days since start
         # dcount when self.be_in=0, initial setting ensures trading right away
         self.OUTDAY = (-self.INI_WAIT_DAYS+1)
@@ -284,26 +287,6 @@ class CFD_InOut(QCAlgorithm):
         for symbol in self.symbols:
             self.history_all[symbol] = history.xs(symbol, level='symbol')['close']
 
-        # Setup daily consolidation
-        for symbol in self.symbols:
-            self.consolidator = TradeBarConsolidator(timedelta(days=1))
-            self.consolidator.DataConsolidated += self.consolidation_handler
-            self.SubscriptionManager.AddConsolidator(symbol, self.consolidator)
-
-        #delay = 30 if not isLocal() or self.LiveMode else 0
-        delay = 30
-
-        self.Schedule.On(
-            self.DateRules.EveryDay(),
-            self.TimeRules.AfterMarketOpen('SPY', delay),  # reduced time
-            self.rebalance_when_out_of_the_market)
-
-        self.Schedule.On(
-            self.DateRules.EveryDay(),
-            self.TimeRules.BeforeMarketClose('SPY', 0) if not self.LiveMode
-            else self.TimeRules.Every(timedelta(minutes=1)),
-            self.record_vars)
-
         # Set the security initializer with the characteristics defined in CustomSecurityInitializer
         self.SetSecurityInitializer(self.CustomSecurityInitializer)
 
@@ -323,11 +306,35 @@ class CFD_InOut(QCAlgorithm):
         self.dzma_average = EmaData(self) 
 
         # initialize the indicator with the daily history close price
+        self.myLog(len(self.history_all))
+        self.myLog(self.history_all[self.VIX].values)
+        return
         for i in range(-self.window_len + 1, 0): 
         #for i in range(-10 + 1, 0): 
             self.myLog(i)
             self.Balance(self.history_all[:i][-self.window_len:])
         self.Balance(self.history_all[-self.window_len:])
+        return
+
+        # Setup daily consolidation
+        for symbol in self.symbols:
+            self.consolidator = TradeBarConsolidator(timedelta(days=1))
+            self.consolidator.DataConsolidated += self.consolidation_handler
+            self.SubscriptionManager.AddConsolidator(symbol, self.consolidator)
+
+        #delay = 30 if not isLocal() or self.LiveMode else 0
+        delay = 30
+
+        self.Schedule.On(
+            self.DateRules.EveryDay(),
+            self.TimeRules.AfterMarketOpen('SPY', delay),  # reduced time
+            self.rebalance_when_out_of_the_market)
+
+        self.Schedule.On(
+            self.DateRules.EveryDay(),
+            self.TimeRules.BeforeMarketClose('SPY', 0) if not self.LiveMode
+            else self.TimeRules.Every(timedelta(minutes=1)),
+            self.record_vars)
 
         alert = 'Starting algorithm'
         self.alert(alert, alert)
@@ -587,6 +594,7 @@ class CFD_InOut(QCAlgorithm):
 
     def Balance(self, history):
         self.myLog('Balance')
+        return
 
         # TODO: compute needs to be moved to ??? alpha compute method.
         # then alpha can be used to aid in construct portfolio.
